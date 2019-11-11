@@ -13,6 +13,13 @@
  * permissions and limitations under the License.
  */
 
+//Added by MAURO
+#include <iostream>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <stdio.h>
+//end of added
+
 #include <algorithm>
 #include <curl/curl.h>
 
@@ -197,7 +204,27 @@ void MessageRouter::onServerSideDisconnect(std::shared_ptr<TransportInterface> t
 }
 
 void MessageRouter::consumeMessage(const std::string& contextId, const std::string& message) {
+//Added by MAURO
+    std::cout<<"consume_message: "<<message<<"\n";
     notifyObserverOnReceive(contextId, message);
+//Added IPC MAURO
+    std::string str1="Roomie";
+    if (message.find(str1) != std::string::npos)
+        {
+    std::string s = message;
+    int n = s.length();
+    // declaring character array
+    char char_array[n + 1];
+    // copying the contents of the
+    // string to char array
+    strcpy(char_array, s.c_str());
+    key_t key=ftok("shmfile", 65);
+    int shmid = shmget(key,1024,0666|IPC_CREAT);
+    char *str = (char*) shmat(shmid,(void*)0,0);
+    std::strcpy(str, s.c_str());
+    shmdt(str);  
+        }
+
 }
 
 void MessageRouter::setObserver(std::shared_ptr<MessageRouterObserverInterface> observer) {
